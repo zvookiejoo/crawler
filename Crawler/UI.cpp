@@ -1,14 +1,12 @@
+#include "stdafx.h"
+
 #include "UI.h"
 #include "Application.h"
 #include "Lot.h"
+#include "Writer.h"
 
-#include <boost/format.hpp>
-#include <exception>
 #include <CommCtrl.h>
 #include <commdlg.h>
-#pragma comment (lib, "comctl32.lib")
-
-#include "Writer.h"
 
 LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

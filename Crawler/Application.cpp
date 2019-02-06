@@ -1,8 +1,5 @@
 #include "Application.h"
 #include "UI.h"
-#include <exception>
-#include <vector>
-
 
 Application::Application()
 {

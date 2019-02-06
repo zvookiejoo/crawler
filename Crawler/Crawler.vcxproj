@@ -134,6 +134,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Harvester.h" />
     <ClInclude Include="Lot.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="UI.h" />
     <ClInclude Include="Writer.h" />
   </ItemGroup>

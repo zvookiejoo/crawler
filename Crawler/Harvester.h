@@ -1,9 +1,6 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <list>
+#include "stdafx.h"
 #include "gumbo.h"
-#include "Lot.h"
 
 typedef struct {
 	std::string host;

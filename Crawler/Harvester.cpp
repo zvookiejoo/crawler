@@ -1,16 +1,12 @@
 #include "Harvester.h"
 #include "UI.h"
 
-#pragma comment (lib, "gumbo.lib")
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-#include <string>
-#include <exception>
 #include <regex>
 
 using tcp = boost::asio::ip::tcp;

@@ -1,10 +1,9 @@
+#include "stdafx.h"
 #include "Lot.h"
-#include <Windows.h>
 
 Lot::Lot()
 {
 }
-
 
 Lot::~Lot()
 {

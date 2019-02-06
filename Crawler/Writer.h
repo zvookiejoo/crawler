@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <exception>
-#include <Windows.h>
-#include "Lot.h"
+#include "stdafx.h"
 
 class Writer
 {
