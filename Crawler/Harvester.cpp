@@ -35,6 +35,8 @@ void Harvester::grab(const char * url, ProductList & data)
 
 	URI * uri = parseURL(url);
 
+	hostname = uri->host;
+
 	app.updateState(L"Получаем первую страницу данных");
 
 	get(*uri, pageContent);
@@ -260,6 +262,8 @@ void Harvester::processPage(GumboNode * root, ProductList & data)
 
 		GumboNode * text = (GumboNode *)node->v.element.children.data[0];
 
+		GumboAttribute * linkAttr = gumbo_get_attribute(&node->v.element.attributes, "href");
+
 		int length = MultiByteToWideChar(CP_ACP, 0, text->v.text.original_text.data, -1, NULL, 0);
 		wchar_t * tempName = new wchar_t[length];
 		MultiByteToWideChar(CP_ACP, 0, text->v.text.original_text.data, length, tempName, length);
@@ -272,6 +276,36 @@ void Harvester::processPage(GumboNode * root, ProductList & data)
 		const GumboNode * paramRoot = nullptr;
 
 		findNodeWithAttr(GUMBO_TAG_DIV, "class", "lotListOneLotParam", *it, &paramRoot);
+
+		GumboNode * codeNode = (GumboNode*)paramRoot->v.element.children.data[0];
+
+		length = MultiByteToWideChar(CP_ACP, 0, codeNode->v.text.original_text.data, -1, NULL, 0);
+		wchar_t * codeCont = new wchar_t[length];
+		MultiByteToWideChar(CP_ACP, 0, codeNode->v.text.original_text.data, length, codeCont, length);
+
+		std::wstring codeContainer(codeCont);
+		delete[] codeCont;
+
+		codeContainer = codeContainer.substr(1, codeContainer.find(L"<span") - 1);
+
+		std::wregex codeRegex(L"([0-9]{5,7})");
+		std::wsmatch results;
+
+		std::regex_search(codeContainer, results, codeRegex);
+
+		if (results.size() == 0)
+		{
+			length = WideCharToMultiByte(CP_ACP, 0, lot->name.c_str(), -1, NULL, 0, NULL, NULL);
+			char * text = new char[length];
+			WideCharToMultiByte(CP_ACP, 0, lot->name.c_str(), length, text, length, NULL, NULL);
+			std::string errorText("Не найден код товара ");
+			errorText += text;
+			throw std::exception(errorText.c_str());
+		}
+
+		lot->sku = std::stoi(results[0]);
+
+		findCondition(linkAttr->value, lot->condition);
 
 		std::list<GumboNode *> params;
 
@@ -303,9 +337,17 @@ void Harvester::processPage(GumboNode * root, ProductList & data)
 
 		textPrice = std::regex_replace(textPrice, r, "");
 
-		double price = atof(textPrice.c_str());
+		double price = std::stof(textPrice);
 
 		lot->price = price;
+		lot->url = L"http://";
+		std::wstring host(hostname.begin(), hostname.end());
+		lot->url += host;
+		
+		length = MultiByteToWideChar(CP_ACP, 0, linkAttr->value, -1, NULL, 0);
+		wchar_t * path = new wchar_t[length];
+		MultiByteToWideChar(CP_ACP, 0, linkAttr->value, length, path, length);
+		lot->url += path;
 
 		data.push_back(*lot);
 
@@ -386,4 +428,34 @@ void Harvester::findPageLinks(GumboNode * root, std::list<std::string>& result)
 		GumboAttribute * attr = (GumboAttribute *)node->v.element.attributes.data[0];
 		result.push_back(attr->value);
 	}
+}
+
+void Harvester::findCondition(const char * url, std::wstring & result)
+{
+	if (!url) throw std::exception("url was null at Harvester::findCondition");
+
+	URI addr = { hostname.c_str(), url };
+
+	std::string content;
+
+	get(addr, content);
+
+	GumboOutput * tree = gumbo_parse(content.c_str());
+
+	const GumboNode * conditionCont = nullptr;
+
+	findNodeWithAttr(GUMBO_TAG_SPAN, "class", "goodsInfoParamInfN", tree->root, &conditionCont);
+
+	const GumboNode * cond = (GumboNode*)conditionCont->v.element.children.data[0];
+
+	unsigned int length = MultiByteToWideChar(CP_ACP, 0, cond->v.text.original_text.data, -1, NULL, 0);
+	wchar_t * text = new wchar_t[length];
+	MultiByteToWideChar(CP_ACP, 0, cond->v.text.original_text.data, length, text, length);
+
+	result = text;
+	delete[] text;
+
+	result = result.substr(0, result.find(L"</span"));
+
+	gumbo_destroy_output(&kGumboDefaultOptions, tree);
 }

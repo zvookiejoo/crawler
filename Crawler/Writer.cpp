@@ -43,20 +43,24 @@ void Writer::write(const ProductList & data, const wchar_t * fileName)
 
 	int currentRow = 3;
 
-	sheet->Cells->Item[2][2] = L"№ п/п";
+	sheet->Cells->Item[2][2] = L"Код";
 	sheet->Cells->Item[2][3] = L"Наименование";
 	sheet->Cells->Item[2][4] = L"Количество";
 	sheet->Cells->Item[2][5] = L"Цена";
+	sheet->Cells->Item[2][6] = L"Состояние";
+	sheet->Cells->Item[2][7] = L"Ссылка";
 
 	Application & application = Application::getInstance();
 	unsigned int count = data.size();
 
 	for (auto it = data.begin(); it != data.end(); it++)
 	{
-		sheet->Cells->Item[currentRow][2] = currentRow - 2;
+		sheet->Cells->Item[currentRow][2] = it->sku;
 		sheet->Cells->Item[currentRow][3] = it->name.c_str();
 		sheet->Cells->Item[currentRow][4] = it->quantity;
 		sheet->Cells->Item[currentRow][5] = it->price;
+		sheet->Cells->Item[currentRow][6] = it->condition.c_str();
+		sheet->Cells->Item[currentRow][7] = it->url.c_str();
 
 		application.updateState(boost::str(boost::wformat(L"Записано %d из %d товаров") % (currentRow - 2) % count).c_str());
 		currentRow++;

@@ -89,14 +89,20 @@ void Application::showList()
 	{
 		for (auto it = data.begin(); it != data.end(); it++)
 		{
-			std::wstring text = it->name;
+			std::wstring text = std::to_wstring(it->sku);
 			ui.addListItem(text.c_str(), 0, false);
-
-			text = std::to_wstring(it->quantity);
+			
+			text = it->name;
 			ui.addListItem(text.c_str(), 1, false);
 
+			text = it->condition;
+			ui.addListItem(text.c_str(), 2, false);
+
+			text = std::to_wstring(it->quantity);
+			ui.addListItem(text.c_str(), 3, false);
+
 			text = boost::str(boost::wformat(L"%.2f") % it->price);
-			ui.addListItem(text.c_str(), 2, true);
+			ui.addListItem(text.c_str(), 4, true);
 		}
 	}
 	else

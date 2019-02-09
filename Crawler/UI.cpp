@@ -82,22 +82,34 @@ void UI::createControls(HWND parent)
 	lvc.fmt = LVCFMT_LEFT;
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.iSubItem = 0;
-	lvc.pszText = (LPWSTR)L"Наименование";
-	lvc.cx = 600;
+	lvc.pszText = (LPWSTR)L"Код";
+	lvc.cx = 50;
 
 	SendMessage(list, LVM_INSERTCOLUMN, 0, (LPARAM)&lvc);
 
 	lvc.iSubItem = 1;
-	lvc.pszText = (LPWSTR)L"Количество";
-	lvc.cx = 80;
-	
+	lvc.pszText = (LPWSTR)L"Наименование";
+	lvc.cx = 300;
+
 	SendMessage(list, LVM_INSERTCOLUMN, 1, (LPARAM)&lvc);
 
 	lvc.iSubItem = 2;
+	lvc.pszText = (LPWSTR)L"Состояние";
+	lvc.cx = 100;
+
+	SendMessage(list, LVM_INSERTCOLUMN, 2, (LPARAM)&lvc);
+
+	lvc.iSubItem = 3;
+	lvc.pszText = (LPWSTR)L"Количество";
+	lvc.cx = 80;
+	
+	SendMessage(list, LVM_INSERTCOLUMN, 3, (LPARAM)&lvc);
+
+	lvc.iSubItem = 4;
 	lvc.pszText = (LPWSTR)L"Цена";
 	lvc.cx = 80;
 
-	SendMessage(list, LVM_INSERTCOLUMN, 2, (LPARAM)&lvc);
+	SendMessage(list, LVM_INSERTCOLUMN, 4, (LPARAM)&lvc);
 
 	SendMessage(list, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 

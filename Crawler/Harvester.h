@@ -13,11 +13,8 @@ public:
 	Harvester();
 	~Harvester();
 
-	//void grab(const char * url);
 	void grab(const char * url, ProductList & data);
-	const std::vector<Lot> & getResults();
 private:
-	// std::vector<Lot> lotCards;
 	std::string hostname;
 
 	void get(const URI & url, std::string & result);
@@ -29,4 +26,5 @@ private:
 	void processPage(GumboNode * root, ProductList & data);
 	URI * parseURL(const char * url);
 	void findPageLinks(GumboNode * root, std::list<std::string> & result);
+	void findCondition(const char * url, std::wstring & result);
 };
