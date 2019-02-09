@@ -206,7 +206,7 @@ const wchar_t * UI::getFilename()
 	ofn.lpstrFile = buf;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_EXPLORER;
-	ofn.lpstrFilter = L"Excel files (*.xlsx)\0*.xlsx\0\0)";
+	ofn.lpstrFilter = L"Excel files (*.xlsx)\0*.xlsx\0\0";
 	ofn.nFilterIndex = 0;
 	ofn.lpstrDefExt = L"xlsx";
 
@@ -220,6 +220,9 @@ UI::UI()
 	handle = NULL;
 	btnGet = NULL;
 	btnClear = NULL;
+	btnSave = NULL;
+	list = NULL;
+	status = NULL;
 	title = L"DirectLot Crawler";
 	className = L"CrawlerWindowClass";
 	hInstance = GetModuleHandle(NULL);
@@ -272,7 +275,8 @@ void UI::showError(const char * text)
 	// convert multi-byte string to wide-character
 	int length = MultiByteToWideChar(CP_ACP, 0, text, -1, NULL, 0);
 	wchar_t * message = new wchar_t[length];
-	memset(message, 0, length);
+	ZeroMemory(message, length);
+
 	MultiByteToWideChar(CP_ACP, 0, text, length, message, length);
 
 	// show error message

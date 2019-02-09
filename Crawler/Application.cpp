@@ -2,6 +2,8 @@
 #include "Application.h"
 #include "Writer.h"
 
+#include <process.h>
+
 Application::Application()
 {
 	CoInitialize(NULL);
@@ -36,11 +38,10 @@ void Application::run()
 
 void Application::harvest()
 {
-	unsigned long id = 0;
-	CreateThread(NULL, 0, harvesterThread, NULL, 0, &id);
+	_beginthreadex(NULL, 0, harvesterThread, NULL, 0, NULL);
 }
 
-DWORD WINAPI Application::harvesterThread(void * p)
+unsigned int __stdcall Application::harvesterThread(void * p)
 {
 	Application & app = Application::getInstance();
 
@@ -61,7 +62,7 @@ DWORD WINAPI Application::harvesterThread(void * p)
 	return 0;
 }
 
-DWORD WINAPI Application::saveThread(void * p)
+unsigned int __stdcall Application::saveThread(void * p)
 {
 	Writer writer;
 	Application & app = Application::getInstance();
@@ -147,7 +148,7 @@ void Application::clearData()
 
 void Application::save()
 {
-	CreateThread(NULL, 0, saveThread, NULL, 0, NULL);
+	_beginthreadex(NULL, 0, saveThread, NULL, 0, NULL);
 }
 
 bool Application::haveData()

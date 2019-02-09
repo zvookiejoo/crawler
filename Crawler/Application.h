@@ -21,8 +21,8 @@ private:
 	ProductList data;
 	bool saved = false;
 
-	static DWORD WINAPI harvesterThread(void * p);
-	static DWORD WINAPI saveThread(void * p);
+	static unsigned int __stdcall harvesterThread(void * p);
+	static unsigned int __stdcall saveThread(void * p);
 
 	Application();
 	~Application();

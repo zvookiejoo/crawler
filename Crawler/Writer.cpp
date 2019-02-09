@@ -29,13 +29,11 @@ void Writer::write(const ProductList & data, const wchar_t * fileName)
 
 	app->PutVisible(0, true);
 
-	Excel::_WorkbookPtr book = nullptr;
-	book = app->Workbooks->Add();
+	Excel::_WorkbookPtr book = app->Workbooks->Add();
 
 	if (!book) throw std::exception("Failed to create Excel book.");
 
-	Excel::_WorksheetPtr sheet = nullptr;
-	sheet = book->Sheets->Item[1];
+	Excel::_WorksheetPtr sheet = book->Sheets->Item[1];
 
 	if (!sheet) throw std::exception("Failed to get Excel sheet.");
 
