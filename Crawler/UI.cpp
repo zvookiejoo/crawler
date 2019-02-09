@@ -109,7 +109,7 @@ void UI::createControls(HWND parent)
 
 	lvc.iSubItem = 2;
 	lvc.pszText = (LPWSTR)L"Состояние";
-	lvc.cx = 100;
+	lvc.cx = 230;
 
 	SendMessage(list, LVM_INSERTCOLUMN, 2, (LPARAM)&lvc);
 
