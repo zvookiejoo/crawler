@@ -13,10 +13,11 @@ public:
 	Harvester();
 	~Harvester();
 
-	void grab(const char * url);
+	//void grab(const char * url);
+	void grab(const char * url, ProductList & data);
 	const std::vector<Lot> & getResults();
 private:
-	std::vector<Lot> lotCards;
+	// std::vector<Lot> lotCards;
 	std::string hostname;
 
 	void get(const URI & url, std::string & result);
@@ -25,7 +26,7 @@ private:
 	void findAll(GumboTag tag, const GumboNode * root, const char * attrName, const char * startsWith, std::list<GumboNode *> & result);
 	void findWithAttrStartsWith(GumboTag tag, const GumboNode * root, const char * name, const char * start, GumboNode ** result);
 	bool haveAttrBeginsWith(const GumboNode * node, const char * name, const char * begin);
-	void processPage(GumboNode * root);
+	void processPage(GumboNode * root, ProductList & data);
 	URI * parseURL(const char * url);
 	void findPageLinks(GumboNode * root, std::list<std::string> & result);
 };

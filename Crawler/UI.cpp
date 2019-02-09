@@ -2,10 +2,8 @@
 
 #include "UI.h"
 #include "Application.h"
-#include "Lot.h"
 #include "Writer.h"
 
-#include <CommCtrl.h>
 #include <commdlg.h>
 
 LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -38,42 +36,6 @@ LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
-}
-
-void harvest()
-{
-	Application & app = Application::getInstance();
-	UI & ui = UI::getInstance();
-
-	try
-	{
-		const std::vector<Lot> & lots = app.runHarvesting();
-
-		if (lots.size() > 0)
-		{
-			for (auto it = lots.begin(); it != lots.end(); it++)
-			{
-				Lot lot = *it;
-				ui.appendLot(&lot);
-			}
-		}
-	}
-	catch (std::exception e)
-	{
-		ui.showError(e.what());
-	}
-}
-
-void clear()
-{
-	Application::getInstance().clearData();
-	UI & ui = UI::getInstance();
-	ui.clearList();
-}
-
-void save()
-{
-	UI::getInstance().saveAs();
 }
 
 void UI::createControls(HWND parent)
@@ -139,15 +101,15 @@ void UI::createControls(HWND parent)
 
 	SendMessage(list, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-	status = CreateWindow(L"STATIC", NULL, WS_CHILD | WS_VISIBLE, 264, 10, 200, 16, parent, NULL, inst, NULL);
+	status = CreateWindow(L"STATIC", NULL, WS_CHILD | WS_VISIBLE, 264, 16, 300, 16, parent, NULL, inst, NULL);
 
 	if (!status) throw std::exception("Could not create status text.");
 
 	SendMessage(status, WM_SETFONT, (WPARAM)font, true);
 
-	actions.insert(std::make_pair(btnGet, &harvest));
-	actions.insert(std::make_pair(btnClear, &clear));
-	actions.insert(std::make_pair(btnSave, &save));
+	actions.insert(std::make_pair(btnGet, Application::harvest));
+	actions.insert(std::make_pair(btnClear, Application::clearData));
+	actions.insert(std::make_pair(btnSave, Application::save));
 }
 
 void UI::runAction(HWND hWnd)
@@ -175,41 +137,56 @@ void UI::runAction(HWND hWnd)
 	}
 }
 
-void UI::updateStatus(int n)
+void UI::addListItem(const wchar_t * text, unsigned int column, bool last)
 {
-	int size = Application::getInstance().getData().size();
-	std::wstring text = boost::str(boost::wformat(L"Обработано %d строк из %d") % n % size);
+	if (!text) throw std::exception("text was null at UI::addListItem");
 
-	SetWindowText(status, text.c_str());
+	LVITEM item;
+
+	item.mask = LVIF_TEXT;
+	item.pszText = (wchar_t *)text;
+	item.iItem = itemIndex;
+	item.iSubItem = column;
+
+	UINT msg = (column > 0) ? LVM_SETITEM : LVM_INSERTITEM;
+
+	SendMessage(list, msg, 0, (LPARAM)&item);
+
+	if (last) itemIndex++;
 }
 
 void UI::clearList()
 {
 	SendMessage(list, LVM_DELETEALLITEMS, 0, 0);
+	itemIndex = 0;
 }
 
-void UI::saveAs()
+void UI::setStatusText(const wchar_t * text)
 {
-	if (!Application::getInstance().haveData()) return;
+	if (!text) throw std::exception("text was null at UI::setStatusText");
 
+	SetWindowText(status, text);
+}
+
+const wchar_t * UI::getFilename()
+{
 	OPENFILENAME ofn = { 0 };
 
-	wchar_t buf[MAX_PATH] = L"";
+	wchar_t * buf = new wchar_t[MAX_PATH];
+	ZeroMemory(buf, MAX_PATH);
 
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = handle;
-	ofn.lpstrFilter = L"Excel 2007 books (*.xlsx)";
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags |= OFN_LONGNAMES;
-	ofn.lpstrDefExt = L"xlsx";
 	ofn.lpstrFile = buf;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_EXPLORER;
+	ofn.lpstrFilter = L"Excel files (*.xlsx)\0*.xlsx\0\0)";
+	ofn.nFilterIndex = 0;
+	ofn.lpstrDefExt = L"xlsx";
 
-	if (GetSaveFileName(&ofn))
-	{
-		Writer w;
+	if (!GetSaveFileName(&ofn)) throw std::exception("Could not get file name.");
 
-		w.write(Application::getInstance().getData(), buf);
-	}
+	return (const wchar_t *)buf;
 }
 
 UI::UI()
@@ -262,40 +239,6 @@ void UI::create()
 LRESULT CALLBACK UI::wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	return UI::getInstance().windowProc(hWnd, uMsg, wParam, lParam);
-}
-
-void UI::appendLot(Lot * lot)
-{
-	if (!lot) return;
-
-	int result = 0;
-
-	LVITEM item;
-
-	item.mask = LVIF_TEXT;
-	item.pszText = (LPWSTR)lot->getName().c_str();
-	item.iItem = itemIndex;
-	item.iSubItem = 0;
-
-	result = SendMessage(list, LVM_INSERTITEM, 0, (LPARAM)&item);
-	
-	int pcs = lot->getInStock();
-	std::wstring p = std::to_wstring(pcs);
-
-	item.pszText = (LPWSTR)p.c_str();
-	item.iItem = itemIndex;
-	item.iSubItem = 1;
-
-	result = SendMessage(list, LVM_SETITEM, 0, (LPARAM)&item);
-
-	double price = lot->getPrice();
-	std::wstring pr = boost::str(boost::wformat(L"%.2f") % price);
-	item.pszText = (LPWSTR)pr.c_str();
-	item.iItem = itemIndex;
-	item.iSubItem = 2;
-
-	result = SendMessage(list, LVM_SETITEM, 0, (LPARAM)&item);
-	itemIndex++;
 }
 
 void UI::showError(const char * text)

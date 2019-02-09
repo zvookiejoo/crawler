@@ -1,25 +1,27 @@
+#include "stdafx.h"
 #include "Application.h"
-#include "UI.h"
+#include "Writer.h"
 
 Application::Application()
 {
-	ui = &(UI::getInstance());
-	data = nullptr;
+	CoInitialize(NULL);
 }
 
 Application::~Application()
 {
+	CoUninitialize();
 }
 
 void Application::run()
 {
 	try
 	{
-		ui->create();
+		ui.create();
+		updateState(L"Нажмите \"Втянуть\" для получения данных");
 	}
 	catch (std::exception e)
 	{
-		ui->showError(e.what());
+		ui.showError(e.what());
 		return;
 	}
 
@@ -30,43 +32,103 @@ void Application::run()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-
-	/*
-	*/
 }
 
-const std::vector<Lot> & Application::runHarvesting()
+void Application::harvest()
 {
+	unsigned long id = 0;
+	CreateThread(NULL, 0, harvesterThread, NULL, 0, &id);
+}
+
+DWORD __stdcall Application::harvesterThread(void * p)
+{
+	Application & app = Application::getInstance();
+
 	try
 	{
-		harv.grab("http://directlot.ru/user.php?id=6460&f=tovary");
+		app.harv.grab("http://directlot.ru/user.php?id=6460&f=tovary", app.data);
 	}
 	catch (std::exception e)
 	{
-		ui->showError(e.what());
+		app.ui.showError(e.what());
 	}
 
-	data = (std::vector<Lot> *)&harv.getResults();
+	app.updateState(boost::str(boost::wformat(L"Получено %d товаров") % app.data.size()).c_str());
+	app.showList();
 
-	return harv.getResults();
+	return 0;
 }
 
-const std::vector<Lot>& Application::getData()
+DWORD __stdcall Application::saveThread(void * p)
 {
-	return *data;
+	Writer writer;
+	Application & app = Application::getInstance();
+
+	const wchar_t * fileName = nullptr;
+
+	try
+	{
+		fileName = app.ui.getFilename();
+	}
+	catch (std::exception e)
+	{
+		app.ui.showError(e.what());
+	}
+
+	if (fileName)
+	{
+		writer.write(app.data, fileName);
+	}
+
+	return 0;
+}
+
+void Application::showList()
+{
+	if (haveData())
+	{
+		for (auto it = data.begin(); it != data.end(); it++)
+		{
+			std::wstring text = it->name;
+			ui.addListItem(text.c_str(), 0, false);
+
+			text = std::to_wstring(it->quantity);
+			ui.addListItem(text.c_str(), 1, false);
+
+			text = boost::str(boost::wformat(L"%.2f") % it->price);
+			ui.addListItem(text.c_str(), 2, true);
+		}
+	}
+	else
+	{
+		ui.clearList();
+	}
+}
+
+void Application::updateState(const wchar_t * text)
+{
+	if (!text) throw std::exception("text was null at Application::updateState");
+	ui.setStatusText(text);
 }
 
 void Application::clearData()
 {
-	if (data)
-	{
-		data->clear();
-	}
+	Application & app = Application::getInstance();
+
+	app.updateState(L"Очищаем список");
+	app.data.clear();
+	app.showList();
+	app.updateState(L"Нажмите \"Втянуть\" для получения данных");
+}
+
+void Application::save()
+{
+	CreateThread(NULL, 0, saveThread, NULL, 0, NULL);
 }
 
 bool Application::haveData()
 {
-	return (data) ? data->size() > 0 : false;
+	return data.size() > 0;
 }
 
 Application & Application::getInstance()

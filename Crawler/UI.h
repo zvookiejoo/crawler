@@ -1,8 +1,6 @@
 #pragma once
 #include "stdafx.h"
 
-class Lot;
-
 class UI
 {
 public:
@@ -12,11 +10,10 @@ public:
 
 	static LRESULT CALLBACK wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	void appendLot(Lot * lot);
+	void addListItem(const wchar_t * text, unsigned int column, bool last);
 	void clearList();
-	void updateStatus(int n);
-
-	void saveAs();
+	void setStatusText(const wchar_t * text);
+	const wchar_t * getFilename();
 
 	void showError(const char * text);
 	void showError(const wchar_t * text);

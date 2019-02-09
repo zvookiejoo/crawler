@@ -1,5 +1,6 @@
+#include "stdafx.h"
 #include "Writer.h"
-#include "UI.h"
+#include "Application.h"
 
 // mso.dll
 #import "libid:2DF8D04C-5BFA-101B-BDE5-00AA0044DE52" auto_rename no_namespace
@@ -16,7 +17,7 @@ Writer::~Writer()
 {
 }
 
-void Writer::write(const std::vector<Lot>& data, const wchar_t * fileName)
+void Writer::write(const ProductList & data, const wchar_t * fileName)
 {
 	if (!fileName) throw std::exception("fileName was null at Writer::write.");
 
@@ -25,6 +26,8 @@ void Writer::write(const std::vector<Lot>& data, const wchar_t * fileName)
 	HRESULT hr = app.CreateInstance("Excel.Application");
 
 	if (FAILED(hr)) throw std::exception("Failed to run Excel.");
+
+	app->PutVisible(0, true);
 
 	Excel::_WorkbookPtr book = nullptr;
 	book = app->Workbooks->Add();
@@ -45,19 +48,17 @@ void Writer::write(const std::vector<Lot>& data, const wchar_t * fileName)
 	sheet->Cells->Item[2][4] = L"Количество";
 	sheet->Cells->Item[2][5] = L"Цена";
 
-	UI & ui = UI::getInstance();
+	Application & application = Application::getInstance();
+	unsigned int count = data.size();
 
 	for (auto it = data.begin(); it != data.end(); it++)
 	{
-		Lot lot = *it;
-
 		sheet->Cells->Item[currentRow][2] = currentRow - 2;
-		sheet->Cells->Item[currentRow][3] = lot.getName().c_str();
-		sheet->Cells->Item[currentRow][4] = lot.getInStock();
-		sheet->Cells->Item[currentRow][5] = lot.getPrice();
+		sheet->Cells->Item[currentRow][3] = it->name.c_str();
+		sheet->Cells->Item[currentRow][4] = it->quantity;
+		sheet->Cells->Item[currentRow][5] = it->price;
 
-		ui.updateStatus(currentRow - 2);
-
+		application.updateState(boost::str(boost::wformat(L"Записано %d из %d товаров") % (currentRow - 2) % count).c_str());
 		currentRow++;
 	}
 

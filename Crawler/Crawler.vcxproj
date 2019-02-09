@@ -125,7 +125,6 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Harvester.cpp" />
-    <ClCompile Include="Lot.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UI.cpp" />
     <ClCompile Include="Writer.cpp" />
@@ -133,7 +132,6 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Harvester.h" />
-    <ClInclude Include="Lot.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UI.h" />
     <ClInclude Include="Writer.h" />

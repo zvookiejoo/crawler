@@ -1,3 +1,4 @@
+#include "Application.h"
 #include "Harvester.h"
 #include "UI.h"
 
@@ -20,7 +21,7 @@ Harvester::~Harvester()
 {
 }
 
-void Harvester::grab(const char * url)
+void Harvester::grab(const char * url, ProductList & data)
 {
 	if (!url)
 	{
@@ -28,19 +29,35 @@ void Harvester::grab(const char * url)
 		return;
 	}
 
+	Application & app = Application::getInstance();
+
 	std::string pageContent;
 
 	URI * uri = parseURL(url);
 
+	app.updateState(L"Получаем первую страницу данных");
+
 	get(*uri, pageContent);
+
+	app.updateState(L"Разбираем данные");
 
 	GumboOutput * output = gumbo_parse(pageContent.c_str());
 
-	processPage(output->root);
+	processPage(output->root, data);
 
 	std::list<std::string> pageLinks;
 
+	app.updateState(L"Получаем список страниц");
+
 	findPageLinks(output->root, pageLinks);
+
+	unsigned int pageCount = pageLinks.size() + 1;
+	unsigned int currentPage = 1;
+
+	app.updateState(boost::str(boost::wformat(L"Получено страниц: %d из %d") % currentPage % pageCount).c_str());
+	app.showList();
+
+	gumbo_destroy_output(&kGumboDefaultOptions, output);
 
 	for (auto it = pageLinks.begin(); it != pageLinks.end(); it++)
 	{
@@ -51,10 +68,12 @@ void Harvester::grab(const char * url)
 
 		get(*uri, pageContent);
 		output = gumbo_parse(pageContent.c_str());
-		processPage(output->root);
+		processPage(output->root, data);
+		gumbo_destroy_output(&kGumboDefaultOptions, output);
+		currentPage++;
+		app.updateState(boost::str(boost::wformat(L"Получено страниц: %d из %d") % currentPage % pageCount).c_str());
+		app.showList();
 	}
-
-	return;
 }
 
 void Harvester::get(const URI & url, std::string & result)
@@ -89,7 +108,12 @@ void Harvester::get(const URI & url, std::string & result)
 		throw boost::system::system_error(ec);
 }
 
-void Harvester::findNodeWithAttr(GumboTag tag, const char * attrName, const char * attrValue, const GumboNode * root, const GumboNode ** result)
+void Harvester::findNodeWithAttr(
+	GumboTag tag, 
+	const char * attrName, 
+	const char * attrValue, 
+	const GumboNode * root, 
+	const GumboNode ** result)
 {
 	const GumboVector * attributes = &root->v.element.attributes;
 
@@ -207,7 +231,7 @@ bool Harvester::haveAttrBeginsWith(const GumboNode * node, const char * name, co
 	return startsWith(attr->value, begin);
 }
 
-void Harvester::processPage(GumboNode * root)
+void Harvester::processPage(GumboNode * root, ProductList & data)
 {
 	if (!root) throw std::exception("root was null at Harvester::processPage");
 
@@ -239,7 +263,7 @@ void Harvester::processPage(GumboNode * root)
 		std::string name = text->v.text.original_text.data;
 		name = name.substr(0, name.find("<"));
 
-		lot->setName(name.c_str());
+		lot->name = std::wstring(name.begin(), name.end());
 
 		const GumboNode * paramRoot = nullptr;
 
@@ -257,9 +281,9 @@ void Harvester::processPage(GumboNode * root)
 
 		GumboNode * instock = (GumboNode *)count->v.element.children.data[0];
 
-		int stockCount = atoi(instock->v.text.text);
+		int quantityAvailable = atoi(instock->v.text.text);
 
-		lot->setInStock(stockCount);
+		lot->quantity = quantityAvailable;
 
 		const GumboNode * priceNode = nullptr;
 
@@ -277,9 +301,9 @@ void Harvester::processPage(GumboNode * root)
 
 		double price = atof(textPrice.c_str());
 
-		lot->setPrice(price);
+		lot->price = price;
 
-		lotCards.push_back(*lot);
+		data.push_back(*lot);
 
 		delete lot;
 	}
@@ -358,11 +382,4 @@ void Harvester::findPageLinks(GumboNode * root, std::list<std::string>& result)
 		GumboAttribute * attr = (GumboAttribute *)node->v.element.attributes.data[0];
 		result.push_back(attr->value);
 	}
-	
-	return;
-}
-
-const std::vector<Lot>& Harvester::getResults()
-{
-	return this->lotCards;
 }

@@ -1,24 +1,28 @@
 #pragma once
-#include "stdafx.h"
 #include "Harvester.h"
-
-class UI;
+#include "UI.h"
 
 class Application
 {
 public:
 
 	void run();
-	const std::vector<Lot> & runHarvesting();
-	const std::vector<Lot> & getData();
-	void clearData();
+	static void harvest();
+	static void clearData();
+	static void save();
 	bool haveData();
+	void showList();
+	void updateState(const wchar_t * text);
 	static Application & getInstance();
 private:
-	UI * ui;
+	UI & ui = UI::getInstance();
+
 	Harvester harv;
 
-	std::vector<Lot> * data;
+	ProductList data;
+
+	static DWORD WINAPI harvesterThread(void * p);
+	static DWORD WINAPI saveThread(void * p);
 
 	Application();
 	~Application();
