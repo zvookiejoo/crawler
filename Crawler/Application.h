@@ -14,12 +14,12 @@ public:
 	void showList();
 	void updateState(const wchar_t * text);
 	static Application & getInstance();
+	bool dataSaved();
 private:
 	UI & ui = UI::getInstance();
-
 	Harvester harv;
-
 	ProductList data;
+	bool saved = false;
 
 	static DWORD WINAPI harvesterThread(void * p);
 	static DWORD WINAPI saveThread(void * p);

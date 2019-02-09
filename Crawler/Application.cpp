@@ -44,6 +44,8 @@ DWORD __stdcall Application::harvesterThread(void * p)
 {
 	Application & app = Application::getInstance();
 
+	app.clearData();
+
 	try
 	{
 		app.harv.grab("http://directlot.ru/user.php?id=6460&f=tovary", app.data);
@@ -79,6 +81,8 @@ DWORD __stdcall Application::saveThread(void * p)
 	{
 		writer.write(app.data, fileName);
 	}
+
+	app.saved = true;
 
 	return 0;
 }
@@ -121,6 +125,8 @@ void Application::clearData()
 {
 	Application & app = Application::getInstance();
 
+	app.saved = false;
+
 	app.updateState(L"Очищаем список");
 	app.data.clear();
 	app.showList();
@@ -141,4 +147,9 @@ Application & Application::getInstance()
 {
 	static Application app;
 	return app;
+}
+
+bool Application::dataSaved()
+{
+	return saved;
 }

@@ -8,6 +8,8 @@
 
 LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Application & app = Application::getInstance();
+
 	switch (uMsg)
 	{
 	case WM_CREATE:
@@ -25,6 +27,18 @@ LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (HIWORD(wParam) == BN_CLICKED)
 		{
 			runAction((HWND)lParam);
+		}
+		break;
+	case WM_CLOSE:
+		if (app.haveData() && !app.dataSaved())
+		{
+			int result = MessageBox(handle, L"Данные не сохранены. Выйти?", title, MB_ICONQUESTION | MB_OKCANCEL);
+
+			if (result == IDOK) DestroyWindow(handle);
+		}
+		else
+		{
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 		break;
 	case WM_DESTROY:
