@@ -38,7 +38,7 @@ LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else
 		{
-			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+			DestroyWindow(handle);
 		}
 		break;
 	case WM_DESTROY:

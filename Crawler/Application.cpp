@@ -40,7 +40,7 @@ void Application::harvest()
 	CreateThread(NULL, 0, harvesterThread, NULL, 0, &id);
 }
 
-DWORD __stdcall Application::harvesterThread(void * p)
+DWORD WINAPI Application::harvesterThread(void * p)
 {
 	Application & app = Application::getInstance();
 
@@ -61,7 +61,7 @@ DWORD __stdcall Application::harvesterThread(void * p)
 	return 0;
 }
 
-DWORD __stdcall Application::saveThread(void * p)
+DWORD WINAPI Application::saveThread(void * p)
 {
 	Writer writer;
 	Application & app = Application::getInstance();
@@ -89,13 +89,23 @@ DWORD __stdcall Application::saveThread(void * p)
 
 void Application::showList()
 {
+	static int lastNumber;
+
 	if (haveData())
 	{
+		int currentNumber = 0;
+
 		for (auto it = data.begin(); it != data.end(); it++)
 		{
+			if (currentNumber < lastNumber)
+			{
+				currentNumber++;
+				continue;
+			}
+
 			std::wstring text = std::to_wstring(it->sku);
 			ui.addListItem(text.c_str(), 0, false);
-			
+
 			text = it->name;
 			ui.addListItem(text.c_str(), 1, false);
 
@@ -107,6 +117,8 @@ void Application::showList()
 
 			text = boost::str(boost::wformat(L"%.2f") % it->price);
 			ui.addListItem(text.c_str(), 4, true);
+
+			lastNumber = ++currentNumber;
 		}
 	}
 	else

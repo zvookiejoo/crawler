@@ -74,7 +74,6 @@ void Harvester::grab(const char * url, ProductList & data)
 		gumbo_destroy_output(&kGumboDefaultOptions, output);
 		currentPage++;
 		app.updateState(boost::str(boost::wformat(L"Получено страниц: %d из %d") % currentPage % pageCount).c_str());
-		app.showList();
 	}
 }
 
@@ -350,8 +349,9 @@ void Harvester::processPage(GumboNode * root, ProductList & data)
 		lot->url += path;
 
 		data.push_back(*lot);
-
 		delete lot;
+
+		Application::getInstance().showList();
 	}
 }
 
