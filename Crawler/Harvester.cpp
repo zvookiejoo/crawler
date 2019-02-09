@@ -260,10 +260,14 @@ void Harvester::processPage(GumboNode * root, ProductList & data)
 
 		GumboNode * text = (GumboNode *)node->v.element.children.data[0];
 
-		std::string name = text->v.text.original_text.data;
-		name = name.substr(0, name.find("<"));
+		int length = MultiByteToWideChar(CP_ACP, 0, text->v.text.original_text.data, -1, NULL, 0);
+		wchar_t * tempName = new wchar_t[length];
+		MultiByteToWideChar(CP_ACP, 0, text->v.text.original_text.data, length, tempName, length);
 
-		lot->name = std::wstring(name.begin(), name.end());
+		std::wstring name = tempName;
+		lot->name = name.substr(0, name.find(L"</a>"));
+
+		delete[] tempName;
 
 		const GumboNode * paramRoot = nullptr;
 
