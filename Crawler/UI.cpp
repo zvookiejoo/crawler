@@ -56,9 +56,9 @@ LRESULT UI::windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		if (app.haveData() && !app.dataSaved())
 		{
-			int result = MessageBox(handle, L"Данные не сохранены. Выйти?", title, MB_ICONQUESTION | MB_OKCANCEL);
+			int result = MessageBox(handle, L"Данные не сохранены. Выйти?", title, MB_ICONQUESTION | MB_YESNO);
 
-			if (result == IDOK) DestroyWindow(handle);
+			if (result == IDYES) DestroyWindow(handle);
 		}
 		else
 		{
